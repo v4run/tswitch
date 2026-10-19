@@ -3,14 +3,14 @@
 A quiet tmux session/window switcher: a tree of sessions and their windows, vim keys, inline search, kill/rename prompts and a live pane preview. Built to run in a tmux popup.
 
 ```
-   hangar                         4 │ hangar › tmux
-       1  claude                    │
-       2  editor                    │  (live capture of the pane)
- ▎     3  tmux                    ● │
-       4  logs                      │
-                                    │
-   snipauth                       1 │
-       1  api                       │
+   - hangar                       4 │ hangar › tmux
+      1  claude                     │
+      2  editor                     │  (live capture of the pane)
+ ▎    3  tmux                     ● │
+      4  logs                       │
+   + snipauth                     2 │
+   - tether                       1 │
+      1  api                        │
 
  / search · enter switch · x kill · r rename · ? help
 ```
@@ -32,11 +32,11 @@ bind s display-popup -E -b rounded -w 70% -h 50% "tswitch --sessions"
 
 | Key             | Action                                   |
 |-----------------|------------------------------------------|
-| j / k           | Move (skips the blank lines)             |
+| j / k           | Move                                     |
 | g / G           | Top / bottom                             |
 | ] / [           | Next / previous session                  |
 | C-d / C-u       | Half page                                |
-| h / l           | Fold / unfold the session                |
+| - / +  (h / l)  | Fold / unfold the session                |
 | /               | Search; esc returns keeping the filter   |
 | c               | Clear search                             |
 | enter           | Switch                                   |

@@ -1,6 +1,5 @@
 // Package tree flattens a tmux.State into the rows the switcher draws:
-// session headers, their windows, and blank spacers between sessions,
-// filtered by an optional search query.
+// session headers followed by their windows, filtered by an optional search query.
 package tree
 
 import (
@@ -16,14 +15,13 @@ type Kind int
 const (
 	Session Kind = iota
 	Window
-	Spacer
 )
 
 // Row is one line of the list.
 type Row struct {
 	Kind    Kind
 	Session string
-	Index   int    // window index; -1 for session and spacer rows
+	Index   int    // window index; -1 for session rows
 	Name    string // session name for headers, window name for windows
 	Count   int    // number of windows, session rows only
 	Current bool   // the client's current window (or session, for headers)
@@ -41,9 +39,6 @@ type Key struct {
 
 // Key returns the row's identity.
 func (r Row) Key() Key { return Key{r.Kind, r.Session, r.Index} }
-
-// Selectable reports whether the cursor may rest on the row.
-func (r Row) Selectable() bool { return r.Kind != Spacer }
 
 // Label is the human target, e.g. "hangar" or "hangar:2".
 func (r Row) Label() string {
@@ -68,7 +63,6 @@ type Options struct {
 func Build(st tmux.State, opts Options) []Row {
 	terms := strings.Fields(opts.Query)
 	var rows []Row
-	lastHeader := -1
 	for _, s := range st.Sessions {
 		sOK, sIdx := matchEach(terms, s.Name)
 		sessHit := all(sOK)
@@ -97,11 +91,7 @@ func Build(st tmux.State, opts Options) []Row {
 			continue
 		}
 
-		if lastHeader >= 0 && !opts.SessionsOnly {
-			rows = append(rows, Row{Kind: Spacer, Index: -1, Header: lastHeader})
-		}
 		header := len(rows)
-		lastHeader = header
 		folded := len(terms) == 0 && !opts.SessionsOnly && opts.Folded[s.Name]
 		rows = append(rows, Row{
 			Kind:    Session,

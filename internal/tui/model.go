@@ -176,11 +176,9 @@ func (m *Model) normalKey(msg tea.KeyMsg) tea.Cmd {
 	case "k", "up", "ctrl+p":
 		m.move(-1)
 	case "g", "home":
-		m.cursor = 0
-		m.snap(1)
+		m.setCursor(0)
 	case "G", "end":
-		m.cursor = len(m.rows) - 1
-		m.snap(-1)
+		m.setCursor(len(m.rows) - 1)
 	case "ctrl+d":
 		m.move(max(1, m.bodyHeight()/2))
 	case "ctrl+u":
@@ -189,9 +187,9 @@ func (m *Model) normalKey(msg tea.KeyMsg) tea.Cmd {
 		m.jumpSession(1)
 	case "[":
 		m.jumpSession(-1)
-	case "h", "left":
+	case "-", "h", "left":
 		m.fold(true)
-	case "l", "right":
+	case "+", "=", "l", "right":
 		m.fold(false)
 	case "/":
 		m.mode = modeSearch
@@ -335,16 +333,10 @@ func (m *Model) setQuery(q string) {
 	m.cursor = m.bestMatch()
 }
 
-// bestMatch is the first window whose own name matched, else the first
-// session header, else 0.
+// bestMatch is the first window whose own name matched, else the first row.
 func (m *Model) bestMatch() int {
 	for i, r := range m.rows {
 		if r.Kind == tree.Window && len(r.Match) > 0 {
-			return i
-		}
-	}
-	for i, r := range m.rows {
-		if r.Selectable() {
 			return i
 		}
 	}
@@ -355,8 +347,7 @@ func (m *Model) rebuild() {
 	m.rows = tree.Build(m.state, tree.Options{Query: m.query, Folded: m.folded, SessionsOnly: m.sessionsOnly})
 }
 
-// restore puts the cursor on key, or on the selectable row nearest to
-// fallback.
+// restore puts the cursor on key, or on the row nearest to fallback.
 func (m *Model) restore(key tree.Key, fallback int) {
 	for i, r := range m.rows {
 		if r.Key() == key {
@@ -364,38 +355,17 @@ func (m *Model) restore(key tree.Key, fallback int) {
 			return
 		}
 	}
-	m.cursor = min(max(fallback, 0), max(len(m.rows)-1, 0))
-	m.snap(1)
+	m.setCursor(fallback)
 }
 
-// snap moves the cursor off a spacer, preferring dir, then the other way.
-func (m *Model) snap(dir int) {
-	if len(m.rows) == 0 {
-		m.cursor = 0
-		return
-	}
-	for _, d := range []int{dir, -dir} {
-		for i := m.cursor; i >= 0 && i < len(m.rows); i += d {
-			if m.rows[i].Selectable() {
-				m.cursor = i
-				return
-			}
-		}
-	}
+// setCursor moves the cursor to i, clamped to the list.
+func (m *Model) setCursor(i int) {
+	m.cursor = min(max(i, 0), max(len(m.rows)-1, 0))
 }
 
-// move steps n selectable rows (negative goes up), stopping at the ends.
+// move steps n rows (negative goes up), stopping at the ends.
 func (m *Model) move(n int) {
-	dir := 1
-	if n < 0 {
-		dir, n = -1, -n
-	}
-	for i := m.cursor + dir; n > 0 && i >= 0 && i < len(m.rows); i += dir {
-		if m.rows[i].Selectable() {
-			m.cursor = i
-			n--
-		}
-	}
+	m.setCursor(m.cursor + n)
 }
 
 // jumpSession goes to the next/previous session header. Going back from a
@@ -433,7 +403,7 @@ func (m *Model) fold(fold bool) {
 }
 
 func (m Model) selected() (tree.Row, bool) {
-	if m.cursor < 0 || m.cursor >= len(m.rows) || !m.rows[m.cursor].Selectable() {
+	if m.cursor < 0 || m.cursor >= len(m.rows) {
 		return tree.Row{}, false
 	}
 	return m.rows[m.cursor], true

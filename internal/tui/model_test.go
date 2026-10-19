@@ -145,7 +145,7 @@ func TestNew_SessionsOnlyCursorOnCurrentSession(t *testing.T) {
 	}
 }
 
-func TestMove_SkipsSpacers(t *testing.T) {
+func TestMove_CrossesIntoNextSession(t *testing.T) {
 	m := press(newModel(t, newFake(), false), "j")
 	if got := sel(m); got != "snipauth" {
 		t.Errorf("j from hangar:2 = %s, want snipauth", got)
@@ -180,6 +180,28 @@ func TestJumpSession(t *testing.T) {
 	m = press(m, "j", "[")
 	if got := sel(m); got != "snipauth" {
 		t.Errorf("[ from window should land on own header, got %s", got)
+	}
+}
+
+func TestFold_MinusPlusKeysAndMarkers(t *testing.T) {
+	m := press(newModel(t, newFake(), false), "]", "-")
+	if !m.folded["snipauth"] {
+		t.Fatal("- did not fold snipauth")
+	}
+	view := m.View()
+	if !strings.Contains(view, "+ snipauth") || !strings.Contains(view, "- hangar") {
+		t.Errorf("markers missing:\n%s", view)
+	}
+	m = press(m, "+")
+	if m.folded["snipauth"] || !strings.Contains(m.View(), "- snipauth") {
+		t.Error("+ did not unfold snipauth")
+	}
+}
+
+func TestView_SessionsOnlyHasNoMarkers(t *testing.T) {
+	m := newModel(t, newFake(), true)
+	if v := m.View(); strings.Contains(v, "- hangar") || strings.Contains(v, "+ hangar") {
+		t.Errorf("sessions-only view shows fold markers:\n%s", v)
 	}
 }
 
@@ -247,7 +269,7 @@ func TestSearch_ClearKeepsSelection(t *testing.T) {
 		t.Fatalf("match = %s", got)
 	}
 	m = press(m, "esc", "c")
-	if got := sel(m); got != "snipauth:1" || len(m.rows) != 10 {
+	if got := sel(m); got != "snipauth:1" || len(m.rows) != 8 {
 		t.Errorf("after clear sel %s rows %d", got, len(m.rows))
 	}
 }

@@ -20,8 +20,7 @@ func testState() tmux.State {
 	}
 }
 
-// shape renders rows compactly: "S name", "  W s:i name", "-" for spacers,
-// with "*" for current and "+" for folded.
+// shape renders rows compactly: "S name", "  W s:i name", with "*" for current and "+" for folded.
 func shape(rows []Row) string {
 	var b strings.Builder
 	for _, r := range rows {
@@ -33,8 +32,6 @@ func shape(rows []Row) string {
 			}
 		case Window:
 			b.WriteString("  W " + r.Label() + " " + r.Name)
-		case Spacer:
-			b.WriteString("-")
 		}
 		if r.Current {
 			b.WriteString("*")
@@ -44,16 +41,14 @@ func shape(rows []Row) string {
 	return b.String()
 }
 
-func TestBuild_TreeWithSpacers(t *testing.T) {
+func TestBuild_Tree(t *testing.T) {
 	got := shape(Build(testState(), Options{}))
 	want := `S hangar*
   W hangar:1 claude
   W hangar:2 tmux*
--
 S snipauth
   W snipauth:1 api
   W snipauth:2 zsh
--
 S tether
   W tether:1 zsh
 `
@@ -79,9 +74,7 @@ func TestBuild_Folded(t *testing.T) {
 	want := `S hangar*
   W hangar:1 claude
   W hangar:2 tmux*
--
 S snipauth+
--
 S tether
   W tether:1 zsh
 `
@@ -94,7 +87,6 @@ func TestBuild_QueryWindowNameKeepsOnlyMatches(t *testing.T) {
 	got := shape(Build(testState(), Options{Query: "zsh"}))
 	want := `S snipauth
   W snipauth:2 zsh
--
 S tether
   W tether:1 zsh
 `

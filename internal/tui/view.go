@@ -29,7 +29,7 @@ var helpKeys = [][2]string{
 	{"g G", "top · bottom"},
 	{"] [", "next · previous session"},
 	{"C-d C-u", "half page"},
-	{"h l", "fold · unfold session"},
+	{"- +", "fold · unfold session (also h l)"},
 	{"/", "search"},
 	{"c", "clear search"},
 	{"enter", "switch"},
@@ -101,14 +101,12 @@ func (m Model) listLines(h, w int) []string {
 	return lines
 }
 
-// renderRow draws one list row exactly w cells wide:
+// renderRow draws one list row exactly w cells wide; "-" marks an
+// unfolded session and "+" a folded one (no marker in sessions-only mode):
 //
-//	▎ session                 4
+//	▎ - session               4
 //	▎    2  window            ●
 func (m Model) renderRow(r tree.Row, sel bool, w int) string {
-	if r.Kind == tree.Spacer {
-		return ""
-	}
 	bar := " "
 	if sel {
 		bar = accent.Render("▎")
@@ -122,8 +120,12 @@ func (m Model) renderRow(r tree.Row, sel bool, w int) string {
 			base = accentB
 		}
 		left = highlight(r.Name, r.Match, base)
-		if r.Folded {
-			left += muted.Render(" …")
+		if !m.sessionsOnly {
+			marker := "-"
+			if r.Folded {
+				marker = "+"
+			}
+			left = muted.Render(marker) + " " + left
 		}
 		right = muted.Render(fmt.Sprint(r.Count))
 		if m.sessionsOnly && r.Current {
@@ -134,7 +136,7 @@ func (m Model) renderRow(r tree.Row, sel bool, w int) string {
 		if sel {
 			base = accentB
 		}
-		left = "   " + muted.Render(fmt.Sprintf("%2d", r.Index)) + "  " + highlight(r.Name, r.Match, base)
+		left = "  " + muted.Render(fmt.Sprintf("%2d", r.Index)) + "  " + highlight(r.Name, r.Match, base)
 		if r.Current {
 			right = accent.Render("●")
 		}
@@ -254,36 +256,16 @@ func (m Model) footer() string {
 	}
 
 	right := ""
-	if total := m.selectableCount(); m.query != "" || len(m.rows) > m.bodyHeight() {
+	if total := len(m.rows); m.query != "" || total > m.bodyHeight() {
 		pos := 0
 		if total > 0 {
-			pos = m.selectableIndex() + 1
+			pos = m.cursor + 1
 		}
 		right = muted.Render(fmt.Sprintf("%d/%d", pos, total))
 	}
 	left = ansi.Truncate(left, max(m.width-lipgloss.Width(right)-4, 1), "…")
 	gap := m.width - 2 - lipgloss.Width(left) - lipgloss.Width(right)
 	return " " + left + strings.Repeat(" ", max(gap, 1)) + right + " "
-}
-
-func (m Model) selectableCount() int {
-	n := 0
-	for _, r := range m.rows {
-		if r.Selectable() {
-			n++
-		}
-	}
-	return n
-}
-
-func (m Model) selectableIndex() int {
-	n := 0
-	for i := 0; i < m.cursor && i < len(m.rows); i++ {
-		if m.rows[i].Selectable() {
-			n++
-		}
-	}
-	return n
 }
 
 // fit pads or truncates s to exactly w cells.
