@@ -30,7 +30,7 @@ var helpKeys = [][2]string{
 	{"] [", "next · previous session"},
 	{"C-d C-u", "half page"},
 	{"o", "open · close session"},
-	{"h l", "close · open session"},
+	{"h l", "to session · into windows"},
 	{"/", "search"},
 	{"c", "clear search"},
 	{"enter", "switch"},

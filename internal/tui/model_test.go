@@ -209,8 +209,33 @@ func TestView_SessionsOnlyHasNoMarkers(t *testing.T) {
 	}
 }
 
-func TestFold_FromWindowFoldsSessionAndMovesToHeader(t *testing.T) {
+func TestH_GoesToParentWithoutFolding(t *testing.T) {
 	m := press(newModel(t, newFake(), false), "h")
+	if got := sel(m); got != "hangar" {
+		t.Errorf("got %s", got)
+	}
+	if m.folded["hangar"] {
+		t.Error("h folded the session")
+	}
+	m = press(m, "h")
+	if got := sel(m); got != "hangar" || m.folded["hangar"] {
+		t.Errorf("h on header: sel %s folded %v", got, m.folded["hangar"])
+	}
+}
+
+func TestL_OpensFoldedOrStepsIntoFirstWindow(t *testing.T) {
+	m := press(newModel(t, newFake(), false), "h", "l")
+	if got := sel(m); got != "hangar:1" {
+		t.Errorf("l on open header = %s", got)
+	}
+	m = press(m, "o", "l")
+	if got := sel(m); got != "hangar" || m.folded["hangar"] {
+		t.Errorf("l on folded header: sel %s folded %v", got, m.folded["hangar"])
+	}
+}
+
+func TestO_FromWindowFoldsSessionAndMovesToHeader(t *testing.T) {
+	m := press(newModel(t, newFake(), false), "o")
 	if got := sel(m); got != "hangar" {
 		t.Errorf("got %s", got)
 	}
@@ -218,10 +243,6 @@ func TestFold_FromWindowFoldsSessionAndMovesToHeader(t *testing.T) {
 		if r.Kind == tree.Window && r.Session == "hangar" {
 			t.Fatal("hangar windows still listed")
 		}
-	}
-	m = press(m, "l", "j")
-	if got := sel(m); got != "hangar:1" {
-		t.Errorf("after unfold j = %s", got)
 	}
 }
 

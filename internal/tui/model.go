@@ -188,9 +188,9 @@ func (m *Model) normalKey(msg tea.KeyMsg) tea.Cmd {
 	case "[":
 		m.jumpSession(-1)
 	case "h", "left":
-		m.fold(true)
+		m.parent()
 	case "l", "right":
-		m.fold(false)
+		m.child()
 	case "o":
 		if r, ok := m.selected(); ok {
 			m.fold(!m.folded[r.Session])
@@ -380,6 +380,29 @@ func (m *Model) jumpSession(dir int) {
 			m.cursor = i
 			return
 		}
+	}
+}
+
+// parent moves from a window to its session header, leaving it open.
+func (m *Model) parent() {
+	if r, ok := m.selected(); ok && r.Kind == tree.Window {
+		m.cursor = r.Header
+	}
+}
+
+// child opens a folded session, or steps from an open session header to
+// its first window.
+func (m *Model) child() {
+	r, ok := m.selected()
+	if !ok || r.Kind != tree.Session {
+		return
+	}
+	if r.Folded {
+		m.fold(false)
+		return
+	}
+	if next := m.cursor + 1; next < len(m.rows) && m.rows[next].Kind == tree.Window {
+		m.cursor = next
 	}
 }
 
