@@ -183,18 +183,22 @@ func TestJumpSession(t *testing.T) {
 	}
 }
 
-func TestFold_MinusPlusKeysAndMarkers(t *testing.T) {
-	m := press(newModel(t, newFake(), false), "]", "-")
+func TestFold_OTogglesAndMarkersShow(t *testing.T) {
+	m := press(newModel(t, newFake(), false), "]", "-", "+")
+	if m.folded["snipauth"] {
+		t.Fatal("- / + should not fold")
+	}
+	m = press(m, "o")
 	if !m.folded["snipauth"] {
-		t.Fatal("- did not fold snipauth")
+		t.Fatal("o did not fold snipauth")
 	}
 	view := m.View()
 	if !strings.Contains(view, "+ snipauth") || !strings.Contains(view, "- hangar") {
 		t.Errorf("markers missing:\n%s", view)
 	}
-	m = press(m, "+")
+	m = press(m, "o")
 	if m.folded["snipauth"] || !strings.Contains(m.View(), "- snipauth") {
-		t.Error("+ did not unfold snipauth")
+		t.Error("o did not unfold snipauth")
 	}
 }
 
@@ -403,7 +407,7 @@ func TestView_NarrowHidesPreview(t *testing.T) {
 
 func TestView_HelpOverlay(t *testing.T) {
 	m := press(newModel(t, newFake(), false), "?")
-	if !strings.Contains(m.View(), "fold · unfold") {
+	if !strings.Contains(m.View(), "open · close session") {
 		t.Error("help not shown")
 	}
 	m = press(m, "j")

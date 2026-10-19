@@ -187,10 +187,14 @@ func (m *Model) normalKey(msg tea.KeyMsg) tea.Cmd {
 		m.jumpSession(1)
 	case "[":
 		m.jumpSession(-1)
-	case "-", "h", "left":
+	case "h", "left":
 		m.fold(true)
-	case "+", "=", "l", "right":
+	case "l", "right":
 		m.fold(false)
+	case "o":
+		if r, ok := m.selected(); ok {
+			m.fold(!m.folded[r.Session])
+		}
 	case "/":
 		m.mode = modeSearch
 	case "c":

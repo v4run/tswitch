@@ -36,7 +36,8 @@ bind s display-popup -E -b rounded -w 70% -h 50% "tswitch --sessions"
 | g / G           | Top / bottom                             |
 | ] / [           | Next / previous session                  |
 | C-d / C-u       | Half page                                |
-| - / +  (h / l)  | Fold / unfold the session                |
+| o               | Toggle the session open / folded         |
+| h / l           | Fold / unfold the session                |
 | /               | Search; esc returns keeping the filter   |
 | c               | Clear search                             |
 | enter           | Switch                                   |
