@@ -103,8 +103,8 @@ func (m Model) listLines(h, w int) []string {
 
 // renderRow draws one list row exactly w cells wide:
 //
-//	 ▎ session                 4
-//	 ▎    2  window            ●
+//	▎ session                 4
+//	▎    2  window            ●
 func (m Model) renderRow(r tree.Row, sel bool, w int) string {
 	if r.Kind == tree.Spacer {
 		return ""
