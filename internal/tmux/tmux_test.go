@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestParse_CurrentSessionFirstRestInOrder(t *testing.T) {
+func TestParse_KeepsTmuxSessionOrder(t *testing.T) {
 	st, err := Parse(
 		"hangar\t3\n",
 		"0\nhangar\nsnipauth\n",
@@ -18,8 +18,8 @@ func TestParse_CurrentSessionFirstRestInOrder(t *testing.T) {
 		CurrentSession: "hangar",
 		CurrentWindow:  3,
 		Sessions: []Session{
-			{Name: "hangar", Windows: []Window{{1, "claude", false}, {3, "tmux", true}}},
 			{Name: "0", Windows: []Window{{1, "zsh", false}, {2, "zsh", true}}},
+			{Name: "hangar", Windows: []Window{{1, "claude", false}, {3, "tmux", true}}},
 			{Name: "snipauth", Windows: []Window{{1, "api server", true}}},
 		},
 	}

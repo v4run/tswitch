@@ -34,8 +34,7 @@ func (s Session) ActiveWindow() Window {
 	return Window{}
 }
 
-// State is a snapshot of the server. The client's current session is always
-// first in Sessions; the rest keep tmux's order.
+// State is a snapshot of the server. Sessions keep tmux's order.
 type State struct {
 	Sessions       []Session
 	CurrentSession string
@@ -160,12 +159,6 @@ func Parse(current, sessions, windows string) (State, error) {
 		}
 		w := Window{Index: n, Active: f[2] == "1", Name: f[3]}
 		st.Sessions[i].Windows = append(st.Sessions[i].Windows, w)
-	}
-
-	if i, ok := pos[curSession]; ok && i > 0 {
-		cur := st.Sessions[i]
-		copy(st.Sessions[1:i+1], st.Sessions[:i])
-		st.Sessions[0] = cur
 	}
 	return st, nil
 }
