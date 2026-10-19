@@ -1,0 +1,4 @@
+/tswitch
+*.test
+*.out
+.DS_Store
